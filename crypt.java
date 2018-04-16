@@ -1,15 +1,20 @@
 import java.io.FileReader;
+import java.io.IOException;
 
 public class crypt {
     public static void main(String[] args) throws Exception {
-        try(FileReader reader = new FileReader("C:\Users\User\IdeaProjects\cryptographer\src\text.txt)")){
-            //reader.close();
-            //int[] words = ;
-            //for (int i = 0; i < reader.)
+        try(FileReader reader = new FileReader("C:\\SomeDir\\notes3.txt")) {
+            int c;
+            while((c=reader.read())!=-1){
+                System.out.print((char)c);
+            }
         }
-
-
+        catch(IOException ex){
+            System.out.println(ex.getMessage());
+        }
+        
     }
+}
 
     public static byte[] encode(String pText, String pKey) {
         byte[] txt = pText.getBytes();
