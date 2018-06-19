@@ -3,11 +3,34 @@ import java.io.*;
 import org.kohsuke.args4j.*;
 
 public class crypt {
+
+    public byte[] key (String codeKey){
+        byte[] byteKey = codeKey.getBytes();
+        byte[] key = new byte[byteKey.length/2 + byteKey.length % 2];
+        for (int i = 0; i < byteKey.length; i++) {
+            if (byteKey[i] > 0x29 && byteKey[i] < 0x3a) {
+                byteKey[i] -= 0x30;
+            } else if (byteKey[i] > 0x40 && byteKey[i] < 0x47) {
+                byteKey[i] = (byte)(byteKey[i] - 0x40 + 0x9);
+            } else {
+                System.err.println("Invalid Key");
+            }
+        }
+        for (int i = 0; i < key.length; i++) {
+            key[i] = byteKey[i*2];
+            key[i] = (byte)(key[i] << 4);
+            if (i * 2 + 1 < byteKey.length) key[i] += byteKey[i*2 + 1];
+        }
+        return codeKey.getBytes();
+    }
+
     @Option(name = "-c", usage = "Encode it")
-    private String encodeKey;
+    private String encodeKeyInput;
+    private byte[] encodeKey = key(encodeKeyInput);
 
     @Option(name = "-d", usage = "Decode it")
-    private String decodeKey;
+    private String decodeKeyInput;
+    private byte[] decodeKey = key(decodeKeyInput);
 
     @Option(name = "-o", usage = "Output file")
     private String outputFile;
@@ -42,39 +65,24 @@ public class crypt {
             out = new FileOutputStream(inputFile + ".xor");
         }
 
-        if (encodeKey != null) {
-            byte[] line = new byte[encodeKey.length()];
+        if (encodeKey != null || decodeKey != null) {
+            byte[] key = encodeKey;
+            if (key == null) key = decodeKey;
+            byte[] line = new byte[key.length];
             while (in.read(line) != -1) {
-                out.write(encode(line, encodeKey));
-            }
-
-        } else if (decodeKey != null) {
-            byte[] line = new byte[decodeKey.length()];
-            while (in.read(line) != -1) {
-                out.write(encode(line, decodeKey));
+                out.write(encodeAndDecode(line, key));
             }
         } else {
             System.err.println("No decode or encode key");
         }
     }
 
-    public byte[] encode(byte[] pText, String pKey) {
+    static byte[] encodeAndDecode(byte[] pText, byte[] pKey) {
         byte[] txt = pText;
-        byte[] key = pKey.getBytes();
         byte[] res = new byte[pText.length];
         for (int i = 0; i < txt.length; i++) {
-            res[i] = (byte) (txt[i] ^ key[i % key.length]);
+            res[i] = (byte) (txt[i] ^ pKey[i % pKey.length]);
         }
         return res;
     }
-
-    public byte[] decode(byte[] pText, String pKey) {
-        byte[] res = new byte[pText.length];
-        byte[] key = pKey.getBytes();
-        for (int i = 0; i < pText.length; i++) {
-            res[i] = (byte) (pText[i] ^ key[i % key.length]);
-        }
-        return res;
-    }
-
 }
