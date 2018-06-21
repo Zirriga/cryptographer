@@ -1,8 +1,17 @@
 import java.io.*;
 
-import org.kohsuke.args4j.*;
-
 public class Crypt {
+    private String encodeKey;
+    private String decodeKey;
+    private String inputFile;
+    private String outputFile;
+
+    public Crypt(String encodeKey, String decodeKey, String inputFile, String outputFile) {
+        this.encodeKey = encodeKey;
+        this.decodeKey = decodeKey;
+        this.inputFile = inputFile;
+        this.outputFile = outputFile;
+    }
 
     public byte[] key (String codeKey){
         byte[] byteKey = codeKey.getBytes();
@@ -21,39 +30,12 @@ public class Crypt {
             key[i] = (byte)(key[i] << 4);
             if (i * 2 + 1 < byteKey.length) key[i] += byteKey[i*2 + 1];
         }
-        return codeKey.getBytes();
+        return key;
     }
 
-    @Option(name = "-c", usage = "Encode it")
-    private String encodeKey;
-
-    @Option(name = "-d", usage = "Decode it")
-    private String decodeKey;
-
-    @Option(name = "-o", usage = "Output file")
-    private String outputFile;
-
-    @Argument(usage = "Input file", required = true)
-    private String inputFile;
-
-    public static void main(String[] args) {
-        try {
-            new Crypt().launch(args);
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-        }
-
-    }
-
-    private void launch(String[] args) throws IOException {
-        CmdLineParser parser = new CmdLineParser(this);
-        try {
-            parser.parseArgument(args);
-        } catch (CmdLineException e) {
-            System.exit(-1);
-        }
 
 
+    public void start() throws IOException {
         FileInputStream in = new FileInputStream(inputFile);
         FileOutputStream out;
         if (outputFile != null) {
@@ -64,8 +46,12 @@ public class Crypt {
         }
 
         if (encodeKey != null || decodeKey != null) {
-            byte[] key = key(encodeKey);
-            if (key == null) key = key(decodeKey);
+            byte[] key;
+            if (encodeKey!= null){
+                key = key(encodeKey);
+            } else {
+                key = key(decodeKey);
+            }
             byte[] line = new byte[key.length];
             while (in.read(line) != -1) {
                 out.write(encodeAndDecode(line, key));
