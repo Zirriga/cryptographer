@@ -13,26 +13,25 @@ public class Crypt {
         this.outputFile = outputFile;
     }
 
-    public byte[] key (String codeKey){
+    public byte[] key(String codeKey) {
         byte[] byteKey = codeKey.getBytes();
-        byte[] key = new byte[byteKey.length/2 + byteKey.length % 2];
+        byte[] key = new byte[byteKey.length / 2 + byteKey.length % 2];
         for (int i = 0; i < byteKey.length; i++) {
             if (byteKey[i] > 0x29 && byteKey[i] < 0x3a) {
                 byteKey[i] -= 0x30;
             } else if (byteKey[i] > 0x40 && byteKey[i] < 0x47) {
-                byteKey[i] = (byte)(byteKey[i] - 0x40 + 0x9);
+                byteKey[i] = (byte) (byteKey[i] - 0x40 + 0x9);
             } else {
                 System.err.println("Invalid Key");
             }
         }
         for (int i = 0; i < key.length; i++) {
-            key[i] = byteKey[i*2];
-            key[i] = (byte)(key[i] << 4);
-            if (i * 2 + 1 < byteKey.length) key[i] += byteKey[i*2 + 1];
+            key[i] = byteKey[i * 2];
+            key[i] = (byte) (key[i] << 4);
+            if (i * 2 + 1 < byteKey.length) key[i] += byteKey[i * 2 + 1];
         }
         return key;
     }
-
 
 
     public void start() throws IOException {
@@ -44,20 +43,25 @@ public class Crypt {
         } else {
             out = new FileOutputStream(inputFile + ".xor");
         }
-
+        if (encodeKey != null && decodeKey != null) throw new IOException("Two codes");
         if (encodeKey != null || decodeKey != null) {
             byte[] key;
-            if (encodeKey!= null){
+            if (encodeKey != null) {
                 key = key(encodeKey);
             } else {
                 key = key(decodeKey);
             }
-            byte[] line = new byte[key.length];
-            while (in.read(line) != -1) {
-                out.write(encodeAndDecode(line, key));
+            byte sym;
+            byte res;
+            int index = 0;
+            while ((sym = (byte) in.read()) != -1) {
+                res = (byte) (sym ^ key[index]);
+                index++;
+                index %= key.length;
+                out.write(res);
             }
         } else {
-            System.err.println("No decode or encode key");
+            throw new IOException("No decode or encode key");
         }
     }
 

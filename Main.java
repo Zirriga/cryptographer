@@ -24,8 +24,8 @@ public class Main {
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
-
     }
+
     private void launch(String[] args) throws IOException {
         CmdLineParser parser = new CmdLineParser(this);
         try {
