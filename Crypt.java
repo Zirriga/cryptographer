@@ -2,7 +2,7 @@ import java.io.*;
 
 import org.kohsuke.args4j.*;
 
-public class crypt {
+public class Crypt {
 
     public byte[] key (String codeKey){
         byte[] byteKey = codeKey.getBytes();
@@ -25,12 +25,10 @@ public class crypt {
     }
 
     @Option(name = "-c", usage = "Encode it")
-    private String encodeKeyInput;
-    private byte[] encodeKey = key(encodeKeyInput);
+    private String encodeKey;
 
     @Option(name = "-d", usage = "Decode it")
-    private String decodeKeyInput;
-    private byte[] decodeKey = key(decodeKeyInput);
+    private String decodeKey;
 
     @Option(name = "-o", usage = "Output file")
     private String outputFile;
@@ -40,7 +38,7 @@ public class crypt {
 
     public static void main(String[] args) {
         try {
-            new crypt().launch(args);
+            new Crypt().launch(args);
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
@@ -52,7 +50,7 @@ public class crypt {
         try {
             parser.parseArgument(args);
         } catch (CmdLineException e) {
-            e.getMessage();
+            System.exit(-1);
         }
 
 
@@ -66,8 +64,8 @@ public class crypt {
         }
 
         if (encodeKey != null || decodeKey != null) {
-            byte[] key = encodeKey;
-            if (key == null) key = decodeKey;
+            byte[] key = key(encodeKey);
+            if (key == null) key = key(decodeKey);
             byte[] line = new byte[key.length];
             while (in.read(line) != -1) {
                 out.write(encodeAndDecode(line, key));
